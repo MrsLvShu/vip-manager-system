@@ -8,11 +8,31 @@
 <script>
 // @ is an alias to /src
 import HelloWorld from '@/components/HelloWorld.vue'
+import { process } from 'ipaddr.js';
 
 export default {
   name: 'HomeView',
   components: {
     HelloWorld
-  }
+  },
+  data() {
+    return {
+      query: {
+        username: "admin",
+        password: "admin"
+      }
+    }
+  },
+  created() {
+    this.$axios(
+      {
+        url: process.env.VUE_APP_BASE_API + '/login',
+        method: "post",
+      params:this.query
+      }
+    ).then(res => {
+      console.log(res);
+    })
+  },
 }
 </script>
