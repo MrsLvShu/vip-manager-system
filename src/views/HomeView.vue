@@ -8,7 +8,7 @@
 <script>
 // @ is an alias to /src
 import HelloWorld from '@/components/HelloWorld.vue'
-import {login} from '@/utils/api'
+import {login} from '@/api/user'
 
 export default {
   name: 'HomeView',
@@ -24,6 +24,7 @@ export default {
     }
   },
   created() {
+    // console.log('login=>',login());
     login(this.query).then(res => {
       console.log(res);
     })
