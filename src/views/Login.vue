@@ -16,7 +16,7 @@
 </template>
 
 <script>
-    import { login ,admin} from '@/api/user';
+ 
 export default {
   data() {
     return {
@@ -39,18 +39,17 @@ export default {
             this.$refs[formName].validate((valid) => {
                 if (!valid) return
                 this.getLogin()
-                this.getAdmin()
+
             });
         },
-    //   async getLogin() {
-    //      try {
-    //          const res = await login(this.ruleForm)
-    //          console.log(res,'111');
-    //         localStorage.setItem('token',res.token)
-    //      } catch (e) {
-    //         console.log(e,'e')
-    //      }
-    //     },
+      async getLogin() {
+          const token = await this.$store.dispatch('DIS_SET_TOKEN', this.ruleForm)
+          if (!token) return
+          const userinfo = await this.$store.dispatch('DIS_SET_USERINFO')
+          if (!userinfo) return
+          this.$message.success('登录成功')
+          this.$router.push('/')
+        },
     //     async getAdmin() {
     //     try {
     //         const res = await admin()

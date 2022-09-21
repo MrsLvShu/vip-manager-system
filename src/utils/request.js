@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { Message } from 'element-ui'
+import store from '../store/index'
 // 配置请求的跟路径
 // axios.defaults.baseURL = process.env.VUE_APP_BASE_API
 const $axios = axios.create({
@@ -13,7 +14,9 @@ const exceptionMessage = {
 }
 
 $axios.interceptors.request.use(config => {
-    config.headers.Authorization = window.localStorage.getItem('token')
+    const token = store.getters.token
+    if (token) config.headers.Authorization = 'Bearer ' +token
+
     return config
 })
 $axios.interceptors.response.use(function (response) {
