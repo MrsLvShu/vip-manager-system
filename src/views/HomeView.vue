@@ -8,7 +8,7 @@
 <script>
 // @ is an alias to /src
 import HelloWorld from '@/components/HelloWorld.vue'
-import {login} from '@/api/user'
+
 
 export default {
   name: 'HomeView',
@@ -17,26 +17,11 @@ export default {
   },
   data() {
     return {
-      query: {
-        username: "admin",
-        password: "admin"
-      }
+      
     }
   },
   created() {
-    // console.log('login=>',login());
-    login(this.query).then(res => {
-      console.log(res);
-    })
-    // this.$axios(
-    //   {
-    //     url: process.env.VUE_APP_BASE_API + '/login',
-    //     method: "post",
-    //   params:this.query
-    //   }
-    // ).then(res => {
-    //   console.log(res);
-    // })
+   
   },
 }
 </script>
