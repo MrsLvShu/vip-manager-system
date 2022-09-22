@@ -39,7 +39,6 @@ export default {
             this.$refs[formName].validate((valid) => {
                 if (!valid) return
                 this.getLogin()
-
             });
         },
       async getLogin() {
@@ -50,15 +49,6 @@ export default {
           this.$message.success('登录成功')
           this.$router.push('/')
         },
-    //     async getAdmin() {
-    //     try {
-    //         const res = await admin()
-    //         console.log(res, 'admin');
-    //         localStorage.setItem('admin',res.name)
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // }
     },
   created() {
 

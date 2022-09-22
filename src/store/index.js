@@ -2,13 +2,13 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import {
   getToken, getUserInfo, setToken,setUserInfo} from '../utils/auth'
-import {login,admin} from '../api/user'
+import {login,admin,quite} from '../api/user'
 Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
     token: getToken() || '',
-    userInfo:getUserInfo || ''
+    userInfo: getUserInfo() || ''
   },
   getters: {
     token(state) {
@@ -48,6 +48,12 @@ export default new Vuex.Store({
       } catch (error) {
         console.log(error.message)
       }
+    },
+    async getLogout ({commit}){
+      const res = await quite()
+      commit('SET_TOKEN', '')
+      commit('SET_USERINFO','{}')
+      return res
     }
   },
   modules: {

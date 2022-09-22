@@ -9,11 +9,11 @@ export const getToken = () => {
 }
 
 export const setUserInfo = (userInfo) => {
-    localStorage.setItem(UserInfo_key, JSON.stringify(userInfo) || '{}')
+    localStorage.setItem(UserInfo_key, JSON.stringify(userInfo) )
 }
 
 export const getUserInfo = () => {
-    return JSON.parse(localStorage.getItem(UserInfo_key))
+    return JSON.parse(localStorage.getItem(UserInfo_key) || '{}')
 }
 
 export const removeTAndU = () => {

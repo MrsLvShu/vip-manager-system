@@ -1,14 +1,20 @@
 import request from '../utils/request'
 export const login = (data) => {
    return request({
-        url: '/login',
+       url: 'http://ceshi5.dishait.cn/admin/login',
         method: "post",
         data
     })
 }
 export const admin = () => {
     return request({
-        url: 'http://vue.mengxuegu.com/pro-api/user/info/admin',
+        url: '/info/admin',
         method: "get",
+    })
+}
+export const quite = () => {
+    return request({
+        url: '/logout',
+        method: "post",
     })
 }

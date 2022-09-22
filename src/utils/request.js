@@ -25,6 +25,10 @@ $axios.interceptors.response.use(function (response) {
         // _showError(response.status,response.data.message)
         return response.data.data
     }
+    if (response.status === 401) {
+        
+        return
+    }
         
     return response;
 }, function (error) {
