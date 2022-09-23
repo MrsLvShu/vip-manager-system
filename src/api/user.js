@@ -8,13 +8,13 @@ export const login = (data) => {
 }
 export const admin = () => {
     return request({
-        url: '/info/admin',
+        url: '/user/info/admin',
         method: "get",
     })
 }
 export const quite = () => {
     return request({
-        url: '/logout',
+        url: '/user/logout',
         method: "post",
     })
 }
