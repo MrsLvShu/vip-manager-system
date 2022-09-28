@@ -2,14 +2,19 @@
     <div>
         <el-table class="mt-2" :data="List" height="380" border style="width: 100%">
             <template v-for="(item,index) in columns">
-                <el-table-column v-if="item.type && item.type !=='action'" :type="item.type" :label="item.label" v-bind="item">
+                <el-table-column v-if="item.order" :type="item.type" :label="item.label" v-bind="item">
                 </el-table-column>
                 <el-table-column v-else-if="!item.type" :label="item.label" :prop="item.prop" v-bind="item">
                 </el-table-column>
-                <el-table-column v-else-if="item.type==='action'" :label="item.label" v-bind="item">
+                <!-- <el-table-column v-else-if="item.type==='action'" :label="item.label" v-bind="item">
                     <template v-slot="scope">
                         <el-button size="mini" v-for="(ele,index) in item.actions" :key="index" :type="ele.type" @click="handleClick(scope.row,ele.text)">{{ele.text}}
                         </el-button>
+                    </template>
+                </el-table-column> -->
+                <el-table-column v-else-if="item.type==='slot'" :label="item.label" v-bind="item">
+                    <template v-slot="scope">
+                        <slot :name="item.slot_name" :row="scope.row"></slot>
                     </template>
                 </el-table-column>
             </template>
@@ -23,6 +28,7 @@
 
 <script>
 export default {
+    name:'basetable',
     props: {
         List: {
             type: Array,

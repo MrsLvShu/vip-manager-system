@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-form ref="supplierForm" :inline="true" :model="supplierQuery" class="demo-form-inline">
+    <!-- <el-form ref="supplierForm" :inline="true" :model="supplierQuery" class="demo-form-inline">
       <el-form-item prop="name">
         <el-input v-model="supplierQuery.name" placeholder="供应商名称"></el-input>
       </el-form-item>
@@ -15,10 +15,22 @@
         <el-button type="primary" @click="handelOpenDialog">新增</el-button>
         <el-button @click="handleReset('supplierForm')">重置</el-button>
       </el-form-item>
-    </el-form>
+    </el-form> -->
+    <base-form :formItem="formItem" ref="supplierForm" v-model.sync="supplierQuery">
+      <template v-slot:query>
+        <el-button type="primary" @click="handleQuery">查询</el-button>
+        <el-button type="primary" @click="handelOpenDialog">新增</el-button>
+        <el-button @click="handleReset('supplierForm')">重置</el-button>
+      </template>
+    </base-form>
 
-
-    <base-table  @size="handleSizeChange" @hanclick="buttonClick" @num="handleCurrentChange" :List="supplierList" :columns="columns" :pagenum="pagenum" :pagesize="pagesize" :total="total"></base-table>
+    <base-table @size="handleSizeChange" @num="handleCurrentChange" :List="supplierList" :columns="columns"
+      :pagenum="pagenum" :pagesize="pagesize" :total="total">
+      <template v-slot:action="scope">
+        <el-button size="mini" @click="handelOpenDialog(scope.row.id)">编辑</el-button>
+        <el-button size="mini" type="danger" @click="handleDelete(scope.row.id)">删除</el-button>
+      </template>
+    </base-table>
     <!-- <el-table class="mt-2" :data="supplierList" height="380" border style="width: 100%">
       <el-table-column type="index" label="序号" width="60">
       </el-table-column>
@@ -42,7 +54,14 @@
     </el-pagination> -->
     <!-- 弹出框 -->
     <!-- 弹出框 -->
-    <el-dialog :title="dialogTitle" :visible.sync="dialogFormVisible" width="500px">
+    <base-dialog :title="dialogTitle" ref="dialogForm" :visible.sync="dialogFormVisible" :dialogItem="dialogItem"
+      v-model.sync="dialogFormParams">
+      <template v-slot:queryLog>
+        <el-button @click="handleCancel('dialogForm')">取 消</el-button>
+        <el-button type="primary" @click="handleSubmit('dialogForm')">确 定</el-button>
+      </template>
+    </base-dialog>
+    <!-- <el-dialog :title="dialogTitle" :visible.sync="dialogFormVisible" width="500px">
       <el-form :model="dialogFormParams" ref="dialogForm" :rules="dialogRules" label-width="100px">
         <el-form-item label="供应商名称" prop="name">
           <el-input v-model="dialogFormParams.name"></el-input>
@@ -61,16 +80,20 @@
         <el-button @click="handleCancel">取 消</el-button>
         <el-button type="primary" @click="handleSubmit">确 定</el-button>
       </div>
-    </el-dialog>
+    </el-dialog> -->
   </div>
 </template>
 
 <script>
 import { supplierList, deleteSupplier, addSupplier, findSupplier, editSupplier } from '@/api/supplier'
 import BaseTable from '@/components/BaseTable.vue'
+import BaseForm from '@/components/BaseForm.vue'
+import BaseDialog from '@/components/BaseDialog.vue'
 export default {
   components: {
-    BaseTable
+    BaseTable,
+    BaseForm,
+    BaseDialog
   },
   data() {
     return {
@@ -85,24 +108,17 @@ export default {
       supplierList: [],
       dialogTitle: "供应商新增",
       dialogFormVisible: false,
-      dialogRules: {
-        name: [
-          { required: true, message: '供应商不能为空', trigger: 'blur' },
-        ],
-        linkman: [
-          { required: true, message: '联系人不能为空', trigger: 'blur' },
-        ]
-      },
       dialogFormParams: {
         linkman: "",
         mobile: "",
         name: "",
-        remark:""
+        remark: ""
       },
       columns: [{
         label: '序号',
         type: 'index',
-        width: '60'
+        width: '60',
+        order: true
       }, {
         label: '供应商名称',
         prop: "name",
@@ -118,18 +134,66 @@ export default {
         label: '备注',
         prop: "remark"
       },
-     {
+      {
         label: '操作',
-        type: 'action',
+        type: 'slot',
         width: '180',
-        actions: [{
-          text: "编辑",
+        slot_name: 'action'
+      }],
+      formItem: [
+        {
+          type: 'input',
+          prop: 'name',
+          placeholder: '供应商名称',
         },
         {
-          text: "删除",
-          type: 'danger'
-        }]
-      }]
+          type: 'input',
+          prop: 'linkman',
+          placeholder: '联系人',
+
+        },
+        {
+          type: 'input',
+          prop: 'mobile',
+          placeholder: '联系电话'
+        },
+        {
+          type: 'slot',
+          slot_name: 'query'
+        }
+      ],
+      dialogItem: [
+        {
+          type: 'input',
+          prop: 'name',
+          label: '供应商名称',
+          rules: {
+            required: true, message: '供应商不能为空', trigger: 'blur'
+          }
+        },
+        {
+          type: 'input',
+          prop: 'linkman',
+          label: '联系人',
+          rules: {
+            required: true, message: '联系人不能为空', trigger: 'blur'
+          }
+        },
+        {
+          type: 'input',
+          prop: 'mobile',
+          label: '联系电话'
+        },
+        {
+          type: 'textarea',
+          prop: 'remark',
+          label: '备注'
+        },
+        {
+          type: 'slot',
+          slot_name: 'queryLog'
+        }
+      ]
     }
   },
   methods: {
@@ -153,7 +217,8 @@ export default {
     },
     //重置
     handleReset(formName) {
-      this.$refs[formName].resetFields();
+      console.log(formName,'formname');
+      this.$refs[formName].handleResetForm();
     },
     //删除
     handleDelete(id) {
@@ -185,16 +250,18 @@ export default {
         this.handleFindSupplier(id)
         return
       }
-        this.dialogTitle = "供应商新增"
-        // this.handleReset('dialogForm')
+      this.dialogTitle = "供应商新增"
+      // this.handleReset('dialogForm')
 
     },
     // 弹窗提交事件
-    handleSubmit() {
-      this.$refs['dialogForm'].validate((valid) => {
-        if (!valid) return
+    handleSubmit(formName) {
+      this.$refs[formName].handleSubmitForm()
+      let result = this.$refs[formName].flag
+      console.log(this.$refs[formName],'result');
+      if (result) {
         this.dialogFormParams.id ? this.handleEditSupplier() : this.handleAddSupplier()
-      })
+      }
     },
     //新增用户接口
     async handleAddSupplier() {
@@ -232,16 +299,9 @@ export default {
       }
     },
     //弹框取消事件
-    handleCancel() {
-      this.handleReset('dialogForm')
+    handleCancel(formName) {
+      this.handleReset(formName)
       this.dialogFormVisible = false
-    },
-    buttonClick(val) {
-      if (val.title == '编辑') {
-        this.handelOpenDialog(val.event.id)
-      } else {
-        this.handleDelete(val.event.id)
-      }
     }
   },
   created() {

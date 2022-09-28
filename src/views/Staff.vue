@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-form ref="staffForm" :inline="true" :model="staffQuery" class="demo-form-inline">
+    <!-- <el-form ref="staffForm" :inline="true" :model="staffQuery" class="demo-form-inline">
       <el-form-item prop="username">
         <el-input v-model="staffQuery.username" placeholder="账号"></el-input>
       </el-form-item>
@@ -12,9 +12,21 @@
         <el-button type="primary" @click="handelOpenDialog">新增</el-button>
         <el-button  @click="handleReset('staffForm')">重置</el-button>
       </el-form-item>
-    </el-form>
+    </el-form> -->
+    <base-form :formItem="formItem" ref="staffForm" v-model.sync="staffQuery">
+      <template v-slot:query>
+        <el-button type="primary" @click="handleQuery">查询</el-button>
+        <el-button type="primary" @click="handelOpenDialog">新增</el-button>
+        <el-button @click="handleReset('staffForm')">重置</el-button>
+      </template>
+    </base-form>
 
-    <base-table @size="handleSizeChange" @hanclick="buttonClick" @num="handleCurrentChange" :List="staffList" :columns="columns" :pagenum="pagenum" :pagesize="pagesize" :total="total"></base-table>
+    <base-table @size="handleSizeChange" @num="handleCurrentChange" :List="staffList" :columns="columns" :pagenum="pagenum" :pagesize="pagesize" :total="total">
+  <template v-slot:action="scope">
+    <el-button size="mini" @click="handelOpenDialog(scope.row.id)">编辑</el-button>
+    <el-button size="mini" type="danger" @click="handleDelete(scope.row.id)">删除</el-button>
+  </template>
+  </base-table>
     <!-- <el-table class="mt-2" :data="staffList" height="380" border style="width: 100%">
       <el-table-column type="index" label="序号" width="60">
       </el-table-column>
@@ -41,7 +53,7 @@
       :page-sizes="[10, 20, 30, 50]" :page-size="pagesize" layout="total, sizes, prev, pager, next, jumper" :total="total">
     </el-pagination> -->
     <!-- 弹出框 -->
-    <el-dialog :title="dialogTitle" :visible.sync="dialogFormVisible" width="500px">
+    <!-- <el-dialog :title="dialogTitle" :visible.sync="dialogFormVisible" width="500px">
       <el-form :model="dialogFormParams" ref="dialogForm" :rules="dialogRules" label-width="100px">
         <el-form-item label="账号" prop="username">
           <el-input v-model="dialogFormParams.username"></el-input>
@@ -67,7 +79,15 @@
         <el-button @click="handleCancel">取 消</el-button>
         <el-button type="primary" @click="handleSubmit">确 定</el-button>
       </div>
-    </el-dialog>
+    </el-dialog> -->
+
+    <base-dialog :title="dialogTitle" ref="dialogForm" :visible.sync="dialogFormVisible" :dialogItem="dialogItem"
+      v-model.sync="dialogFormParams">
+      <template v-slot:queryLog>
+        <el-button @click="handleCancel('dialogForm')">取 消</el-button>
+        <el-button type="primary" @click="handleSubmit('dialogForm')">确 定</el-button>
+      </template>
+    </base-dialog>
   </div>
 </template>
 
@@ -75,8 +95,11 @@
 import { staffList, deleteStaff, addStaff, findStaff, editStaff } from '@/api/staff';
 import BaseTable from '@/components/BaseTable.vue'
 export default {
+  name:'index',
   components: {
-    BaseTable
+    BaseTable,
+    BaseForm: () => import('../components/BaseForm.vue'),
+    BaseDialog:()=>import('../components/BaseDialog.vue')
   },
   data() {
     return {
@@ -88,16 +111,8 @@ export default {
         username: ""
       },
       staffList: [],
-      dialogTitle: "供应商新增",
+      dialogTitle: "员工新增",
       dialogFormVisible: false,
-      dialogRules: {
-        username: [
-          { required: true, message: '账号不能为空', trigger: 'blur' },
-        ],
-        name: [
-          { required: true, message: '姓名不能为空', trigger: 'blur' },
-        ]
-      },
       dialogFormParams: {
         name: "",
         username: "",
@@ -109,10 +124,11 @@ export default {
       columns: [{
         label: '序号',
         type: 'index',
-        width: '60'
+        width: '60',
+        order:true
       }, {
         label: '账号',
-        prop: "username",
+        prop: "username"
       }, {
         label: '姓名',
         prop: "name"
@@ -135,16 +151,71 @@ export default {
         },
       {
         label: '操作',
-        type: 'action',
+        type: 'slot',
         width: '180',
-        actions: [{
-          text: "编辑",
+        slot_name:'action'
+        }],
+      formItem: [
+        {
+          type: 'input',
+          placeholder: '账号',
+          prop: 'username',
+          rules: { required: true, message: '账号不能为空', trigger: 'blur' }
         },
         {
-          text: "删除",
-          type: 'danger'
-        }]
-      }]
+          type: 'input',
+          placeholder: '姓名',
+          prop: 'name',
+          rules: { required: true, message: '姓名不能为空', trigger: 'blur' }
+        },
+        {
+          type: 'slot',
+          slot_name:'query'
+        }
+      ],
+      dialogItem: [
+        {
+          type: 'input',
+          prop: 'username',
+          label: '账号',
+          rules: {
+            required: true, message: '账号不能为空', trigger: 'blur'
+          }
+        },
+        {
+          type: 'input',
+          prop: 'name',
+          label: '姓名',
+          rules: {
+            required: true, message: '姓名不能为空', trigger: 'blur'
+          }
+        },
+        {
+          type: 'input',
+          prop: 'age',
+          label: '年龄'
+        },
+        {
+          type: 'input',
+          prop: 'mobile',
+          label: '电话'
+        },
+        {
+          type: 'input',
+          prop: 'salary',
+          label: '薪酬'
+        },
+        {
+          type: 'date',
+          prop: 'entryDate',
+          label: '入职时间',
+          placeholder:'选择入职时间'
+        },
+        {
+          type: 'slot',
+          slot_name: 'queryLog'
+        }
+      ]
     }
   },
   methods: {
@@ -167,7 +238,7 @@ export default {
     },
     //重置
     handleReset(formName) {
-      this.$refs[formName].resetFields();
+      this.$refs[formName].handleResetForm();
     },
     //删除
     handleDelete(id) {
@@ -204,11 +275,12 @@ export default {
 
     },
     // 弹窗提交事件
-    handleSubmit() {
-      this.$refs['dialogForm'].validate((valid) => {
-        if (!valid) return
+    handleSubmit(formName) {
+      this.$refs[formName].handleSubmitForm()
+      let result = this.$refs[formName].flag
+      if (result) {
         this.dialogFormParams.id ? this.handleEditStaff() : this.handleAddStaff()
-      })
+      }
     },
     //新增用户接口
     async handleAddStaff() {
@@ -246,16 +318,9 @@ export default {
       }
     },
     //弹框取消事件
-    handleCancel() {
-      this.handleReset('dialogForm')
+    handleCancel(formName) {
+      this.handleReset(formName)
       this.dialogFormVisible = false
-    },
-    buttonClick(val) {
-      if (val.title == '编辑') {
-        this.handelOpenDialog(val.event.id)
-      } else {
-        this.handleDelete(val.event.id)
-      }
     }
   },
   created() {

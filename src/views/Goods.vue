@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-form ref="goodsForm" :inline="true" :model="goodsQuery" class="demo-form-inline">
+    <!-- <el-form ref="goodsForm" :inline="true" :model="goodsQuery" class="demo-form-inline">
       <el-form-item prop="name">
         <el-input v-model="goodsQuery.name" placeholder="商品名称"></el-input>
       </el-form-item>
@@ -15,9 +15,21 @@
         <el-button type="primary" @click="handelOpenDialog">新增</el-button>
         <el-button @click="handleReset('goodsForm')">重置</el-button>
       </el-form-item>
-    </el-form>
-    
-    <base-table @size="handleSizeChange" @hanclick="buttonClick" @num="handleCurrentChange" :List="goodsList" :columns="columns" :pagenum="pagenum" :pagesize="pagesize" :total="total"></base-table>
+    </el-form> -->
+    <base-form :formItem="formItem" ref="goodsForm" v-model.sync="goodsQuery" @handleFocus="handelChoose(0)">
+      <template v-slot:query>
+        <el-button type="primary" @click="handleQuery">查询</el-button>
+        <el-button type="primary" @click="handelOpenDialog">新增</el-button>
+        <el-button @click="handleReset('goodsForm')">重置</el-button>
+      </template>
+    </base-form>
+    <base-table @size="handleSizeChange" @num="handleCurrentChange" :List="goodsList" :columns="columns"
+      :pagenum="pagenum" :pagesize="pagesize" :total="total">
+      <template v-slot:action="scope">
+        <el-button size="mini" @click="handelOpenDialog(scope.row.id)">编辑</el-button>
+        <el-button size="mini" type="danger" @click="handleDelete(scope.row.id)">删除</el-button>
+      </template>
+    </base-table>
     <!-- <el-table class="mt-2" :data="goodsList" height="380" border style="width: 100%">
       <el-table-column type="index" label="序号" width="60">
       </el-table-column>
@@ -47,7 +59,7 @@
     </el-pagination> -->
 
     <!-- 弹出框 -->
-    <el-dialog :title="dialogTitle" :visible.sync="dialogFormVisible" width="500px">
+    <!-- <el-dialog :title="dialogTitle" :visible.sync="dialogFormVisible" width="500px">
       <el-form :model="dialogFormParams" ref="dialogForm" :rules="dialogRules" label-width="100px">
         <el-form-item label="商品名称" prop="name">
           <el-input v-model="dialogFormParams.name"></el-input>
@@ -75,7 +87,16 @@
         <el-button @click="handleCancel">取 消</el-button>
         <el-button type="primary" @click="handleSubmit">确 定</el-button>
       </div>
-    </el-dialog>
+    </el-dialog> -->
+
+    <base-dialog :title="dialogTitle" ref="dialogForm" :visible.sync="dialogFormVisible" :dialogItem="dialogItem"
+      v-model.sync="dialogFormParams" @handleFocus="handelChoose(1)">
+      <template v-slot:queryLog>
+        <el-button @click="handleCancel('dialogForm')">取 消</el-button>
+        <el-button type="primary" @click="handleSubmit('dialogForm')">确 定</el-button>
+      </template>
+    </base-dialog>
+
     <!-- 供应商选择弹框 -->
     <el-dialog title="选择供应商" :visible.sync="dialogSupplierVisible" width="30%">
       <el-form :inline="true" :model="supplierForm" class="demo-form-inline">
@@ -83,7 +104,7 @@
           <el-input v-model="supplierForm.name" placeholder="供应商名称"></el-input>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" >查询</el-button>
+          <el-button type="primary">查询</el-button>
         </el-form-item>
       </el-form>
       <el-table :data="tableData" height="250" border style="width: 100%" @row-click="handleClick">
@@ -107,7 +128,9 @@ import { supplierList } from '@/api/supplier'
 import BaseTable from '@/components/BaseTable.vue'
 export default {
   components: {
-    BaseTable
+    BaseTable,
+    BaseForm: () => import('../components/BaseForm.vue'),
+    BaseDialog: () => import('../components/BaseDialog.vue')
   },
   data() {
     return {
@@ -140,11 +163,11 @@ export default {
         spec: "",
         retailPrice: "",
         purchasePrice: "",
-        storageNum:""
+        storageNum: ""
       },
       dialogSupplierVisible: false,
       supplierForm: {
-        name:""
+        name: ""
       },
       tableData: [],
       num: 1,
@@ -154,7 +177,8 @@ export default {
       columns: [{
         label: '序号',
         type: 'index',
-        width: '60'
+        width: '60',
+        order: true
       }, {
         label: '商品名称',
         prop: "name",
@@ -182,18 +206,84 @@ export default {
         label: '供应商',
         prop: "supplierName",
       },
-     {
+      {
         label: '操作',
-        type: 'action',
+        type: 'slot',
         width: '180',
-        actions: [{
-          text: "编辑",
+        slot_name: 'action'
+      }],
+      formItem: [
+        {
+          type: 'input',
+          prop: 'name',
+          placeholder: '商品名称',
         },
         {
-          text: "删除",
-          type: 'danger'
-        }]
-      }]
+          type: 'input',
+          prop: 'code',
+          placeholder: '商品编号',
+        },
+        {
+          type: 'dialog',
+          prop: 'supplierName',
+          placeholder: '选择供应商',
+        },
+        {
+          type: 'slot',
+          slot_name: 'query'
+        }
+      ],
+      dialogItem: [
+        {
+          type: 'input',
+          prop: 'name',
+          label: '商品名称',
+          rules: {
+            required: true, message: '商品名称不能为空', trigger: 'blur'
+          }
+        },
+        {
+          type: 'input',
+          prop: 'code',
+          label: '商品编码',
+          rules: {
+            required: true, message: '商品编码不能为空', trigger: 'blur'
+          }
+        },
+        {
+          type: 'input',
+          prop: 'spec',
+          label: '商品规格'
+        },
+        {
+          type: 'input',
+          prop: 'retailPrice',
+          label: '零售价',
+          rules: {
+            required: true, message: '零售价不能为空', trigger: 'blur'
+          }
+        },
+        {
+          type: 'input',
+          prop: 'purchasePrice',
+          label: '进货价'
+        },
+        {
+          type: 'input',
+          prop: 'storageNum',
+          label: '库存数量'
+        },
+        {
+          // type: 'input',
+          prop: 'supplierName',
+          label: '供应商',
+          attr:'dialog'
+        },
+        {
+          type: 'slot',
+          slot_name: 'queryLog'
+        }
+      ]
     }
   },
   methods: {
@@ -216,7 +306,8 @@ export default {
     },
     //重置
     handleReset(formName) {
-      this.$refs[formName].resetFields();
+      console.log(formName, 'formname');
+      this.$refs[formName].handleResetForm();
     },
     //删除
     handleDelete(id) {
@@ -253,19 +344,24 @@ export default {
 
     },
     // 弹窗提交事件
-    handleSubmit() {
-      this.$refs['dialogForm'].validate((valid) => {
-        if (!valid) return
+    handleSubmit(formName) {
+      this.$refs[formName].handleSubmitForm()
+      let result = this.$refs[formName].flag
+      console.log(this.$refs[formName], 'result');
+      console.log(this.dialogFormParams.id);
+      if (result) {
         this.dialogFormParams.id ? this.handleEditGoods() : this.handleAddGoods()
-      })
+        this.$refs[formName].flag=false
+      }
     },
     //新增用户接口
     async handleAddGoods() {
       try {
         const res = await addGoods(this.dialogFormParams)
-        this.handleReset('dialogForm')
         this.dialogFormVisible = false
         this.$message.success('新增成功')
+        this.handleReset('dialogForm')
+        
         this.getGoodsList()
       } catch (error) {
         console.log(error.message);
@@ -286,28 +382,29 @@ export default {
       try {
         const res = await editGoods(this.dialogFormParams.id, this.dialogFormParams)
         console.log(res, 'res');
-        this.handleReset('dialogForm')
         this.dialogFormVisible = false
         this.$message.success('编辑成功')
+        this.dialogFormParams.id = ''
+        this.handleReset('dialogForm')
         this.getGoodsList()
       } catch (e) {
         console.log(e.message);
       }
     },
     //弹框取消事件
-    handleCancel() {
-      this.handleReset('dialogForm')
+    handleCancel(formName) {
+      this.handleReset(formName)
       this.dialogFormVisible = false
     },
     handelChoose(num) {
       this.dialogSupplierVisible = true
-      this.number =num
+      this.number = num
       this.getSupplierList()
     },
     async getSupplierList() {
       const { rows, total } = await supplierList(this.num, this.size, this.supplierQuery)
       this.tableData = rows
-      this.tot=total
+      this.tot = total
     },
     handleSizeChange1(val) {
       this.size = val
@@ -317,26 +414,19 @@ export default {
       this.num = val
       this.getSupplierList()
     },
-    handleClick(row, column,event) {
-      console.log(row, column, event);
+    handleClick(row, column, event) {
+      console.log(row, column, event)
       if (this.number == 0) {
         this.goodsQuery.supplierName = row.name
       } else if (this.number == 1) {
-        this.dialogFormParams.supplierName=row.name
+        this.dialogFormParams.supplierName = row.name
       }
       this.dialogSupplierVisible = false
-    },
-    buttonClick(val) {
-      if (val.title == '编辑') {
-        this.handelOpenDialog(val.event.id)
-      } else {
-        this.handleDelete(val.event.id)
-      }
     }
   },
   created() {
     this.getGoodsList()
-  },
+  }
 }
 </script>
 

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-form ref="memberForm" :inline="true" :model="MemberQuery" class="demo-form-inline">
+    <!-- <el-form ref="memberForm" :inline="true" :model="MemberQuery" class="demo-form-inline">
       <el-form-item prop="cardNum">
         <el-input v-model="MemberQuery.cardNum" placeholder="会员卡号"></el-input>
       </el-form-item>
@@ -21,9 +21,22 @@
         <el-button type="primary" @click="handelOpenDialog">新增</el-button>
         <el-button @click="handleReset('memberForm')">重置</el-button>
       </el-form-item>
-    </el-form>
+    </el-form> -->
+
+    <base-form :formItem="formItem" ref="memberForm" v-model.sync="MemberQuery">
+      <template v-slot:query>
+        <el-button type="primary" @click="handleQuery">查询</el-button>
+        <el-button type="primary" @click="handelOpenDialog">新增</el-button>
+        <el-button @click="handleReset('memberForm')">重置</el-button>
+      </template>
+    </base-form>
     <!-- 表格 -->
-    <base-table @size="handleSizeChange" @hanclick="buttonClick" @num="handleCurrentChange" :List="MemberList" :columns="columns" :pagenum="pagenum" :pagesize="pagesize" :total="total"></base-table>
+    <base-table @size="handleSizeChange" @num="handleCurrentChange" :List="MemberList" :columns="columns" :pagenum="pagenum" :pagesize="pagesize" :total="total">
+      <template v-slot:action="scope">
+        <el-button size="mini" @click="handelOpenDialog(scope.row.id)">编辑</el-button>
+        <el-button size="mini" type="danger" @click="handleDelete(scope.row.id)">删除</el-button>
+      </template>
+  </base-table>
     <!-- <el-table class="mt-2" :data="MemberList" height="380" border style="width: 100%">
         <el-table-column type="index" label="序号" width="60">
         </el-table-column>
@@ -59,7 +72,7 @@
       :total="total">
     </el-pagination> -->
     <!-- 弹出框 -->
-    <el-dialog :title="dialogTitle" :visible.sync="dialogFormVisible" width="500px">
+    <!-- <el-dialog :title="dialogTitle" :visible.sync="dialogFormVisible" width="500px">
       <el-form :model="dialogFormParams" ref="dialogForm" :rules="dialogRules" label-width="80px">
         <el-form-item label="会员卡号" prop="cardNum">
           <el-input v-model="dialogFormParams.cardNum"></el-input>
@@ -93,7 +106,15 @@
         <el-button @click="handleCancel">取 消</el-button>
         <el-button type="primary" @click="handleSubmit">确 定</el-button>
       </div>
-    </el-dialog>
+    </el-dialog> -->
+
+    <base-dialog :title="dialogTitle" ref="dialogForm" :visible.sync="dialogFormVisible" :dialogItem="dialogItem"
+      v-model.sync="dialogFormParams">
+      <template v-slot:queryLog>
+        <el-button @click="handleCancel('dialogForm')">取 消</el-button>
+        <el-button type="primary" @click="handleSubmit('dialogForm')">确 定</el-button>
+      </template>
+    </base-dialog>
   </div>
 </template>
 
@@ -109,7 +130,9 @@ let payType = {
 }
 export default {
   components: {
-    BaseTable
+    BaseTable,
+    BaseDialog: () => import('../components/BaseDialog.vue'),
+    BaseForm:()=>import("../components/BaseForm.vue")
   },
   data() {
     return {
@@ -150,7 +173,8 @@ export default {
       columns: [{
         label: '序号',
         type: 'index',
-        width:'60'
+        width: '60',
+        order:true
       }, {
         label: '会员卡号',
         prop: "cardNum",
@@ -189,16 +213,128 @@ export default {
         width:'200'
       }, {
         label: '操作',
-        type: 'action',
+        type: 'slot',
         width: '180',
-        actions: [{
-          text: "编辑",
+        slot_name:'action'
+      }],
+      dialogItem: [
+        {
+          type: 'input',
+          prop: 'cardNum',
+          label: '会员卡号',
+          rules: {
+            required: true, message: '会员卡号不能为空', trigger: 'blur'
+          }
         },
         {
-          text: "删除",
-          type: 'danger'
-        }]
-      }]
+          type: 'input',
+          prop: 'name',
+          label: '会员姓名',
+          rules: {
+            required: true, message: '会员姓名不能为空', trigger: 'blur'
+          }
+        },
+        {
+          type: 'date',
+          prop: 'birthday',
+          label: '会员生日'
+        },
+        {
+          type: 'input',
+          prop: 'phone',
+          label: '手机号码'
+        },
+        {
+          type: 'input',
+          prop: 'money',
+          label: '开卡金额'
+        },
+        {
+          type: 'input',
+          prop: 'integral',
+          label: '可用积分'
+        },
+        {
+          type: 'select',
+          prop: 'payType',
+          label: '支付类型',
+          rules: {
+            required: true, message: '支付类型不能为空', trigger: 'blur'
+          },
+          children: [
+            {
+              type: "1",
+              name: "现金"
+            },
+            {
+              type: "2",
+              name: "微信"
+            },
+            {
+              type: "3",
+              name: "支付宝"
+            },
+            {
+              type: "4",
+              name: "银行卡"
+            }
+          ]
+        },
+        {
+          type: 'textarea',
+          prop: 'address',
+          label: '会员地址'
+        },
+        {
+          type: 'slot',
+          slot_name: 'queryLog'
+        }
+      ],
+      formItem: [
+        {
+          type: 'input',
+          prop: 'cardNum',
+          placeholder: '会员卡号',
+        },
+        {
+          type: 'input',
+          prop: 'name',
+          placeholder: '会员名字',
+
+        },
+        {
+          type: 'select',
+          prop: 'payType',
+          placeholder: '支付类型',
+          children: [
+            {
+              type: "1",
+              name: "现金"
+            },
+            {
+              type: "2",
+              name: "微信"
+            },
+            {
+              type: "3",
+              name: "支付宝"
+            },
+            {
+              type: "4",
+              name: "银行卡"
+            }
+          ]
+        },
+        {
+          type: 'date',
+          prop: 'birthday',
+          placeholder: '会员生日'
+        },
+        {
+          type: 'slot',
+          slot_name: 'query'
+        }
+      ],
     }
   },
   filters: {
@@ -234,7 +370,8 @@ export default {
     },
     //重置
     handleReset(formName) {
-      this.$refs[formName].resetFields();
+      console.log(formName, 'formname');
+      this.$refs[formName].handleResetForm();
     },
     //删除
     handleDelete(id) {
@@ -271,10 +408,12 @@ export default {
     },
     // 弹窗提交事件
     handleSubmit() {
-      this.$refs['dialogForm'].validate((valid) => {
-        if (!valid) return
-        this.dialogFormParams.id ? this.handleEditMember() : this.handleAddMember()
-      })
+      this.$refs[formName].handleSubmitForm()
+      let result = this.$refs[formName].flag
+      console.log(this.$refs[formName], 'result');
+      if (result) {
+        this.dialogFormParams.id ? this.handleEditSupplier() : this.handleAddSupplier()
+      }
     },
     //新增用户接口
     async handleAddMember() {
@@ -312,16 +451,9 @@ export default {
       }
     },
     //弹框取消事件
-    handleCancel() {
-      this.handleReset('dialogForm')
+    handleCancel(formName) {
+      this.handleReset(formName)
       this.dialogFormVisible = false
-    },
-    buttonClick(val) {
-      if (val.title == '编辑') {
-        this.handelOpenDialog(val.event.id)
-      } else {
-        this.handleDelete(val.event.id)
-      }
     }
   },
   created() {
